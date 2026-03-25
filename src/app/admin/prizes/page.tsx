@@ -5,7 +5,7 @@ export default function AdminPrizesPage() {
   const [prizes, setPrizes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ name: "", emoji: "🎁", cost: 100, maxWinners: 1, maxApply: 500, value: "" })
+  const [form, setForm] = useState({ name: "", emoji: "🎁", cost: 100, maxWinners: 1, maxApply: 500, value: "", drawAt: "" })
 
   useEffect(() => {
     fetch("/api/prizes")
@@ -23,7 +23,7 @@ export default function AdminPrizesPage() {
     const data = await res.json()
     setPrizes([data, ...prizes])
     setShowForm(false)
-    setForm({ name: "", emoji: "🎁", cost: 100, maxWinners: 1, maxApply: 500, value: "" })
+    setForm({ name: "", emoji: "🎁", cost: 100, maxWinners: 1, maxApply: 500, value: "", drawAt: "" })
   }
 
   const handleDelete = async (id: number) => {
@@ -31,15 +31,18 @@ export default function AdminPrizesPage() {
     setPrizes(prizes.filter(p => p.id !== id))
   }
 
+  const formatDrawAt = (drawAt: string | null) => {
+    if (!drawAt) return "-"
+    return new Date(drawAt).toLocaleString("ko-KR", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
+  }
+
   return (
     <div style={{ fontFamily: "sans-serif", padding: "32px", maxWidth: "900px", margin: "0 auto" }}>
       <a href="/admin" style={{ color: "#6C5CE7", textDecoration: "none" }}>← 어드민 홈</a>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0" }}>
         <h1 style={{ color: "#6C5CE7", margin: 0 }}>🎁 경품 관리</h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          style={{ backgroundColor: "#6C5CE7", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 20px", cursor: "pointer" }}
-        >
+        <button onClick={() => setShowForm(!showForm)}
+          style={{ backgroundColor: "#6C5CE7", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 20px", cursor: "pointer" }}>
           + 경품 추가
         </button>
       </div>
@@ -78,6 +81,11 @@ export default function AdminPrizesPage() {
               <input value={form.value} onChange={e => setForm({...form, value: e.target.value})}
                 style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ddd", marginTop: "4px", boxSizing: "border-box" }} />
             </div>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ fontSize: "13px", color: "#888" }}>🗓️ 추첨 날짜 및 시간</label>
+              <input type="datetime-local" value={form.drawAt} onChange={e => setForm({...form, drawAt: e.target.value})}
+                style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ddd", marginTop: "4px", boxSizing: "border-box" }} />
+            </div>
           </div>
           <button onClick={handleSubmit}
             style={{ marginTop: "16px", backgroundColor: "#6C5CE7", color: "#fff", border: "none", borderRadius: "8px", padding: "12px 24px", cursor: "pointer" }}>
@@ -94,6 +102,7 @@ export default function AdminPrizesPage() {
               <th style={{ padding: "12px", textAlign: "left" }}>PB</th>
               <th style={{ padding: "12px", textAlign: "left" }}>최대 응모</th>
               <th style={{ padding: "12px", textAlign: "left" }}>당첨자</th>
+              <th style={{ padding: "12px", textAlign: "left" }}>추첨 일시</th>
               <th style={{ padding: "12px", textAlign: "left" }}>액션</th>
             </tr>
           </thead>
@@ -104,6 +113,9 @@ export default function AdminPrizesPage() {
                 <td style={{ padding: "12px" }}>{prize.cost} PB</td>
                 <td style={{ padding: "12px" }}>{prize.maxApply}명</td>
                 <td style={{ padding: "12px" }}>{prize.maxWinners}명</td>
+                <td style={{ padding: "12px", fontSize: "13px", color: prize.drawAt ? "#333" : "#aaa" }}>
+                  {formatDrawAt(prize.drawAt)}
+                </td>
                 <td style={{ padding: "12px" }}>
                   <button onClick={() => handleDelete(prize.id)}
                     style={{ backgroundColor: "#FF6B6B", color: "#fff", border: "none", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
