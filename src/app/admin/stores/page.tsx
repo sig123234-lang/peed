@@ -1,10 +1,5 @@
 "use client"
-import { useEffect, useState, useRef } from "react"
-
-const CATEGORIES = ["음식점", "카페", "문화", "숙박", "뷰티", "병원", "기타"]
-
-const inputStyle = { width:"100%", padding:"8px 12px", borderRadius:"8px", border:"1px solid #E5E9FF", fontSize:"13px", outline:"none", boxSizing:"border-box" as const }
-const labelStyle = { fontSize:"12px", fontWeight:"600" as const, color:"#6B7280", display:"block" as const, marginBottom:"4px" }
+import { useEffect, useState } from "react"
 
 function getCity(address: string) {
   if (!address) return "-"
@@ -41,11 +36,11 @@ function StoreTable({ title, stores, onDelete, onStatusChange, showProspect = fa
                     <div style={{ display:"flex", gap:"6px" }}>
                       <button onClick={() => onStatusChange(store.id, "green")}
                         style={{ padding:"4px 10px", borderRadius:"6px", border:"none", cursor:"pointer", fontSize:"11px", fontWeight:"700", background: store.prospectStatus === "green" ? "#10B981" : "#F1F5F9", color: store.prospectStatus === "green" ? "#fff" : "#9CA3AF" }}>
-                        계약 가능
+                        가능성 있음
                       </button>
                       <button onClick={() => onStatusChange(store.id, "red")}
                         style={{ padding:"4px 10px", borderRadius:"6px", border:"none", cursor:"pointer", fontSize:"11px", fontWeight:"700", background: store.prospectStatus === "red" ? "#EF4444" : "#F1F5F9", color: store.prospectStatus === "red" ? "#fff" : "#9CA3AF" }}>
-                        계약 어려움
+                        가능성 낮음
                       </button>
                     </div>
                   </td>
@@ -65,59 +60,74 @@ function StoreTable({ title, stores, onDelete, onStatusChange, showProspect = fa
   )
 }
 
+const CATS: any = {
+  "음식·음료": [
+    { emoji:"🍽️", label:"한식" }, { emoji:"🍜", label:"중식/일식/아시안" }, { emoji:"🍕", label:"양식" },
+    { emoji:"🍗", label:"치킨/패스트푸드" }, { emoji:"🥩", label:"고기/구이" }, { emoji:"☕", label:"카페/디저트" }, { emoji:"🍺", label:"바/펍" }
+  ],
+  "뷰티·웰니스": [
+    { emoji:"💇", label:"헤어샵" }, { emoji:"💅", label:"네일/뷰티" }, { emoji:"🧖", label:"스파/마사지" },
+    { emoji:"🏋️", label:"헬스/피트니스" }, { emoji:"🧘", label:"필라테스/요가" }
+  ],
+  "여가·문화": [
+    { emoji:"🎵", label:"노래방/라이브" }, { emoji:"🎳", label:"볼링/당구" }, { emoji:"📚", label:"독서실/스터디" },
+    { emoji:"🎨", label:"공방/체험" }, { emoji:"🎠", label:"테마파크/놀이" }
+  ],
+  "쇼핑·서비스": [
+    { emoji:"🛍️", label:"패션/의류" }, { emoji:"📱", label:"전자기기" }, { emoji:"🌿", label:"꽃집/인테리어" }, { emoji:"🏪", label:"기타" }
+  ]
+}
+
+const S: any = {
+  wrap: { padding:"24px", background:"#F5F7FF", minHeight:"100vh" },
+  card: { background:"#fff", border:"0.5px solid #E5E9FF", borderRadius:"12px", overflow:"hidden" },
+  cardHeader: { padding:"20px 24px 16px", borderBottom:"0.5px solid #E5E9FF" },
+  cardBody: { padding:"24px" },
+  sectionLabel: { fontSize:"11px", fontWeight:"500" as const, letterSpacing:"0.06em", color:"#9CA3AF", textTransform:"uppercase" as const, marginBottom:"12px", marginTop:"28px", display:"block" as const },
+  field: { display:"flex" as const, flexDirection:"column" as const, gap:"6px" },
+  label: { fontSize:"12px", color:"#6B7280", fontWeight:"500" as const },
+  input: { background:"#F5F7FF", border:"0.5px solid #E5E9FF", borderRadius:"8px", padding:"10px 12px", fontSize:"14px", color:"#1A1F36", outline:"none", width:"100%", fontFamily:"inherit" },
+  divider: { border:"none", borderTop:"0.5px solid #E5E9FF", margin:"24px 0" },
+  footer: { display:"flex" as const, justifyContent:"flex-end" as const, gap:"8px", padding:"16px 24px", borderTop:"0.5px solid #E5E9FF", background:"#F5F7FF" },
+}
+
 export default function AdminStoresPage() {
   const [stores, setStores] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [search, setSearch] = useState("")
   const [storeType, setStoreType] = useState("burning")
-  const [form, setForm] = useState({ name:"", category:"음식점", area:"", address:"", hours:"", emoji:"", tag:"", pb:10, lat:37.5563, lng:126.9236, storeType:"burning" })
-  const mapRef = useRef<any>(null)
-  const markerRef = useRef<any>(null)
+  const [selectedCat, setSelectedCat] = useState("")
+  const [selectedCatEmoji, setSelectedCatEmoji] = useState("")
+  const [contractStatus, setContractStatus] = useState("")
+  const [form, setForm] = useState({ name:"", hours:"", pb:10, contractWeeks:4, weeklyFee:50, address:"", addressDetail:"", naverUrl:"", memo:"", lat:37.5563, lng:126.9236 })
 
   useEffect(() => {
     fetch("/api/stores").then(r => r.json()).then(d => setStores(Array.isArray(d) ? d : [])).finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => {
-    if (!showForm) return
-    setTimeout(() => {
-      const container = document.getElementById("admin-map")
-      if (!container || (window as any).kakao?.maps) return
-      const script = document.createElement("script")
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=f6edd191b80399b1a902a37d8a2caed2&autoload=false`
-      script.onload = () => {
-        (window as any).kakao.maps.load(() => {
-          const map = new (window as any).kakao.maps.Map(container, { center: new (window as any).kakao.maps.LatLng(37.5563, 126.9236), level: 5 })
-          mapRef.current = map
-          const marker = new (window as any).kakao.maps.Marker({ position: map.getCenter(), map })
-          markerRef.current = marker
-          ;(window as any).kakao.maps.event.addListener(map, "click", (e: any) => {
-            const lat = e.latLng.getLat()
-            const lng = e.latLng.getLng()
-            marker.setPosition(e.latLng)
-            setForm(f => ({ ...f, lat, lng }))
-            const geocoder = new (window as any).kakao.maps.services.Geocoder()
-            geocoder.coord2Address(lng, lat, (result: any, status: any) => {
-              if (status === (window as any).kakao.maps.services.Status.OK) {
-                const addr = result[0]?.road_address?.address_name || result[0]?.address?.address_name || ""
-                setForm(f => ({ ...f, address: addr }))
-              }
-            })
-          })
-        })
-      }
-      document.head.appendChild(script)
-    }, 100)
-  }, [showForm])
-
   const handleSubmit = async () => {
     if (!form.name) return
-    const res = await fetch("/api/admin/stores", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({...form, storeType}) })
+    const res = await fetch("/api/admin/stores", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        ...form,
+        category: selectedCat,
+        emoji: selectedCatEmoji,
+        storeType,
+        prospectStatus: contractStatus,
+        tag: "",
+        area: form.address.split(" ")[1] || "",
+      })
+    })
     const data = await res.json()
     setStores([data, ...stores])
     setShowForm(false)
-    setForm({ name:"", category:"음식점", area:"", address:"", hours:"", emoji:"", tag:"", pb:10, lat:37.5563, lng:126.9236, storeType:"burning" })
+    setForm({ name:"", hours:"", pb:10, contractWeeks:4, weeklyFee:50, address:"", addressDetail:"", naverUrl:"", memo:"", lat:37.5563, lng:126.9236 })
+    setSelectedCat("")
+    setSelectedCatEmoji("")
+    setContractStatus("")
   }
 
   const handleDelete = async (id: number) => {
@@ -127,7 +137,7 @@ export default function AdminStoresPage() {
   }
 
   const handleStatusChange = async (id: number, status: string) => {
-    await fetch(`/api/admin/stores`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ id, prospectStatus: status }) })
+    await fetch("/api/admin/stores", { method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ id, prospectStatus: status }) })
     setStores(stores.map(s => s.id === id ? { ...s, prospectStatus: status } : s))
   }
 
@@ -135,6 +145,150 @@ export default function AdminStoresPage() {
   const burning = filtered.filter(s => s.storeType === "burning" && s.active)
   const expired = filtered.filter(s => s.storeType === "burning" && !s.active)
   const prospect = filtered.filter(s => s.storeType === "prospect")
+
+  if (showForm) return (
+    <div style={S.wrap}>
+      <div style={S.card}>
+        <div style={S.cardHeader}>
+          <h2 style={{ fontSize:"16px", fontWeight:"500", color:"#1A1F36" }}>새 매장 등록</h2>
+          <p style={{ fontSize:"13px", color:"#6B7280", marginTop:"4px" }}>매장 정보를 입력하고 저장하세요</p>
+        </div>
+        <div style={S.cardBody}>
+
+          {/* 매장 유형 */}
+          <span style={{ ...S.sectionLabel, marginTop:0 }}>매장 유형 <span style={{ color:"#E24B4A" }}>*</span></span>
+          <div style={{ display:"flex", gap:"4px", background:"#F5F7FF", border:"0.5px solid #E5E9FF", borderRadius:"8px", padding:"3px", width:"100%" }}>
+            {[{v:"burning",l:"🔥 버닝 매장"},{v:"prospect",l:"🏪 영업중 매장"}].map(t => (
+              <button key={t.v} onClick={() => setStoreType(t.v)}
+                style={{ flex:1, padding:"9px 0", borderRadius:"6px", fontSize:"14px", fontWeight:"500", border:"none", cursor:"pointer", background: storeType === t.v ? "#fff" : "transparent", color: storeType === t.v ? "#1A1F36" : "#6B7280" }}>
+                {t.l}
+              </button>
+            ))}
+          </div>
+
+          {/* 매장명 */}
+          <span style={S.sectionLabel}>매장명 <span style={{ color:"#E24B4A" }}>*</span></span>
+          <div style={S.field}>
+            <input style={S.input} placeholder="매장 이름 입력" value={form.name} onChange={e => setForm({...form, name:e.target.value})} />
+          </div>
+
+          {/* 카테고리 */}
+          <span style={S.sectionLabel}>카테고리 <span style={{ color:"#E24B4A" }}>*</span></span>
+          {Object.entries(CATS).map(([group, items]: any) => (
+            <div key={group} style={{ marginBottom:"14px" }}>
+              <div style={{ fontSize:"12px", fontWeight:"500", color:"#6B7280", marginBottom:"8px" }}>{group}</div>
+              <div style={{ display:"flex", flexWrap:"wrap" as const, gap:"7px" }}>
+                {items.map((item: any) => (
+                  <div key={item.label} onClick={() => { setSelectedCat(item.label); setSelectedCatEmoji(item.emoji) }}
+                    style={{ border: selectedCat === item.label ? "0.5px solid #4F8EF7" : "0.5px solid #E5E9FF", borderRadius:"20px", padding:"7px 14px", display:"flex", alignItems:"center", gap:"6px", cursor:"pointer", background: selectedCat === item.label ? "#E8F0FE" : "#F5F7FF", fontSize:"13px", color: selectedCat === item.label ? "#2563EB" : "#1A1F36" }}>
+                    <span style={{ fontSize:"15px" }}>{item.emoji}</span>{item.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* 매장 사진 */}
+          <span style={S.sectionLabel}>매장 사진</span>
+          <div style={{ border:"1.5px dashed #E5E9FF", borderRadius:"12px", padding:"28px", display:"flex", flexDirection:"column" as const, alignItems:"center", gap:"6px", cursor:"pointer", background:"#F5F7FF" }}>
+            <strong style={{ fontSize:"13px", fontWeight:"500", color:"#1A1F36" }}>📷 사진을 드래그하거나 클릭해서 업로드</strong>
+            <span style={{ fontSize:"12px", color:"#6B7280" }}>JPG, PNG · 최대 5장 · 각 10MB 이하</span>
+          </div>
+
+          {/* 운영 정보 */}
+          <span style={S.sectionLabel}>운영 정보</span>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
+            <div style={S.field}>
+              <label style={S.label}>영업시간</label>
+              <input style={S.input} placeholder="09:00 - 22:00" value={form.hours} onChange={e => setForm({...form, hours:e.target.value})} />
+            </div>
+            <div style={S.field}>
+              <label style={S.label}>PB 적립량 <span style={{ color:"#E24B4A" }}>*</span></label>
+              <input style={S.input} type="number" value={form.pb} onChange={e => setForm({...form, pb:Number(e.target.value)})} />
+            </div>
+          </div>
+
+          {/* 계약 정보 (버닝 매장만) */}
+          {storeType === "burning" && (
+            <>
+              <hr style={S.divider} />
+              <span style={{ ...S.sectionLabel, marginTop:0 }}>계약 정보</span>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
+                <div style={S.field}>
+                  <label style={S.label}>계약기간 <span style={{ color:"#E24B4A" }}>*</span></label>
+                  <div style={{ position:"relative" }}>
+                    <input style={{ ...S.input, paddingRight:"44px" }} type="number" value={form.contractWeeks} onChange={e => setForm({...form, contractWeeks:Number(e.target.value)})} />
+                    <span style={{ position:"absolute", right:"12px", top:"50%", transform:"translateY(-50%)", fontSize:"13px", color:"#9CA3AF" }}>주</span>
+                  </div>
+                </div>
+                <div style={S.field}>
+                  <label style={S.label}>계약금 <span style={{ color:"#E24B4A" }}>*</span></label>
+                  <div style={{ position:"relative" }}>
+                    <input style={{ ...S.input, paddingRight:"52px" }} type="number" value={form.weeklyFee} onChange={e => setForm({...form, weeklyFee:Number(e.target.value)})} />
+                    <span style={{ position:"absolute", right:"12px", top:"50%", transform:"translateY(-50%)", fontSize:"13px", color:"#9CA3AF" }}>만원</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          <hr style={S.divider} />
+
+          {/* 주소 */}
+          <span style={{ ...S.sectionLabel, marginTop:0 }}>주소 및 위치</span>
+          <div style={{ ...S.field, marginBottom:"8px" }}>
+            <input style={S.input} placeholder="도로명 주소 검색" value={form.address} onChange={e => setForm({...form, address:e.target.value})} />
+          </div>
+          <div style={{ ...S.field, marginBottom:"12px" }}>
+            <input style={S.input} placeholder="상세 주소 (동/호수 등)" value={form.addressDetail} onChange={e => setForm({...form, addressDetail:e.target.value})} />
+          </div>
+          <div style={{ border:"0.5px solid #E5E9FF", borderRadius:"8px", height:"150px", background:"#F5F7FF", display:"flex", flexDirection:"column" as const, alignItems:"center", justifyContent:"center", gap:"8px", cursor:"pointer" }}>
+            <div style={{ width:"22px", height:"22px", borderRadius:"50% 50% 50% 0", background:"#4F8EF7", transform:"rotate(-45deg)" }} />
+            <span style={{ fontSize:"13px", color:"#6B7280" }}>지도를 클릭해서 핀 설정</span>
+          </div>
+
+          {/* 네이버 플레이스 */}
+          <span style={S.sectionLabel}>네이버 플레이스</span>
+          <div style={{ display:"flex", gap:"8px" }}>
+            <input style={{ ...S.input, flex:1 }} placeholder="https://naver.me/... URL 붙여넣기" value={form.naverUrl} onChange={e => setForm({...form, naverUrl:e.target.value})} />
+            <button style={{ background:"#03C75A", borderRadius:"8px", padding:"10px 16px", fontSize:"13px", fontWeight:"500", color:"#fff", border:"none", cursor:"pointer", whiteSpace:"nowrap" as const }}>N 연결</button>
+          </div>
+
+          {/* 계약 가능성 (영업중 매장만) */}
+          {storeType === "prospect" && (
+            <>
+              <hr style={S.divider} />
+              <span style={{ ...S.sectionLabel, marginTop:0 }}>계약 가능성 <span style={{ color:"#E24B4A" }}>*</span></span>
+              <div style={{ display:"flex", gap:"8px" }}>
+                {[{v:"green",l:"가능성 있음",ac:"#1D9E75",bg:"#E1F5EE"},{v:"red",l:"가능성 낮음",ac:"#E24B4A",bg:"#FCEBEB"}].map(c => (
+                  <div key={c.v} onClick={() => setContractStatus(c.v)}
+                    style={{ flex:1, border: contractStatus === c.v ? `0.5px solid ${c.ac}` : "0.5px solid #E5E9FF", borderRadius:"8px", padding:"12px", display:"flex", flexDirection:"column" as const, alignItems:"center", gap:"6px", cursor:"pointer", background: contractStatus === c.v ? c.bg : "#F5F7FF" }}>
+                    <div style={{ width:"14px", height:"14px", borderRadius:"50%", background:c.ac }} />
+                    <span style={{ fontSize:"13px", fontWeight:"500", color: contractStatus === c.v ? c.ac : "#1A1F36" }}>{c.l}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          <hr style={S.divider} />
+
+          {/* 관리자 메모 */}
+          <span style={{ ...S.sectionLabel, marginTop:0 }}>관리자 메모</span>
+          <textarea
+            style={{ background:"#FAEEDA", border:"0.5px solid #FAC775", borderRadius:"8px", padding:"10px 12px", fontSize:"14px", color:"#633806", outline:"none", width:"100%", fontFamily:"inherit", resize:"none" as const, height:"100px", lineHeight:"1.6" }}
+            placeholder="내부 메모를 입력하세요 (앱에 노출되지 않습니다)"
+            value={form.memo} onChange={e => setForm({...form, memo:e.target.value})}
+          />
+        </div>
+
+        <div style={S.footer}>
+          <button onClick={() => setShowForm(false)} style={{ border:"0.5px solid #E5E9FF", borderRadius:"8px", padding:"10px 20px", fontSize:"14px", background:"transparent", color:"#6B7280", cursor:"pointer" }}>취소</button>
+          <button onClick={handleSubmit} style={{ border:"none", borderRadius:"8px", padding:"10px 24px", fontSize:"14px", fontWeight:"500", background:"#4F8EF7", color:"#fff", cursor:"pointer" }}>저장하기</button>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div style={{ padding:"24px" }}>
@@ -146,70 +300,12 @@ export default function AdminStoresPage() {
         <div style={{ display:"flex", gap:"8px", alignItems:"center" }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="매장명 검색"
             style={{ padding:"8px 12px", border:"1px solid #E5E9FF", borderRadius:"8px", fontSize:"13px", outline:"none", width:"180px" }} />
-          <button onClick={() => setShowForm(!showForm)}
+          <button onClick={() => setShowForm(true)}
             style={{ padding:"8px 16px", background:"#4A6CF7", color:"#fff", border:"none", borderRadius:"8px", fontSize:"13px", fontWeight:"600", cursor:"pointer" }}>
             + 매장 추가
           </button>
         </div>
       </div>
-
-      {showForm && (
-        <div style={{ background:"#fff", border:"1px solid #E5E9FF", borderRadius:"12px", padding:"24px", marginBottom:"20px" }}>
-          <div style={{ fontSize:"14px", fontWeight:"700", color:"#1A1F36", marginBottom:"16px" }}>새 매장 등록</div>
-
-          <div style={{ display:"flex", gap:"8px", marginBottom:"16px" }}>
-            {[{v:"burning", l:"버닝 매장"}, {v:"prospect", l:"영업중 매장"}].map(t => (
-              <button key={t.v} onClick={() => setStoreType(t.v)}
-                style={{ padding:"6px 16px", borderRadius:"8px", border:"1px solid", fontSize:"12px", fontWeight:"600", cursor:"pointer", borderColor: storeType === t.v ? "#4A6CF7" : "#E5E9FF", background: storeType === t.v ? "#EEF2FF" : "#fff", color: storeType === t.v ? "#4A6CF7" : "#6B7280" }}>
-                {t.l}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"16px", marginBottom:"16px" }}>
-            <div style={{ gridColumn:"1/3" }}>
-              <label style={labelStyle}>매장명</label>
-              <input style={inputStyle} value={form.name} onChange={e => setForm({...form, name:e.target.value})} placeholder="매장 이름" />
-            </div>
-            <div>
-              <label style={labelStyle}>카테고리</label>
-              <select style={inputStyle} value={form.category} onChange={e => setForm({...form, category:e.target.value})}>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>이모지</label>
-              <input style={inputStyle} value={form.emoji} onChange={e => setForm({...form, emoji:e.target.value})} placeholder="🏪" />
-            </div>
-            <div>
-              <label style={labelStyle}>영업시간</label>
-              <input style={inputStyle} value={form.hours} onChange={e => setForm({...form, hours:e.target.value})} placeholder="09:00 - 22:00" />
-            </div>
-            <div>
-              <label style={labelStyle}>PB 적립량</label>
-              <input style={inputStyle} type="number" value={form.pb} onChange={e => setForm({...form, pb:Number(e.target.value)})} />
-            </div>
-          </div>
-
-          <div style={{ marginBottom:"16px" }}>
-            <label style={labelStyle}>지도에서 위치 선택 (클릭하여 핀 설정)</label>
-            <div id="admin-map" style={{ width:"100%", height:"300px", borderRadius:"8px", border:"1px solid #E5E9FF", overflow:"hidden" }} />
-            {form.address && <div style={{ marginTop:"6px", fontSize:"12px", color:"#4A6CF7", fontWeight:"600" }}>선택된 주소: {form.address}</div>}
-          </div>
-
-          <div style={{ display:"flex", gap:"8px" }}>
-            <button onClick={handleSubmit}
-              style={{ padding:"8px 20px", background:"#4A6CF7", color:"#fff", border:"none", borderRadius:"8px", fontSize:"13px", fontWeight:"600", cursor:"pointer" }}>
-              저장
-            </button>
-            <button onClick={() => setShowForm(false)}
-              style={{ padding:"8px 20px", background:"none", color:"#6B7280", border:"1px solid #E5E9FF", borderRadius:"8px", fontSize:"13px", cursor:"pointer" }}>
-              취소
-            </button>
-          </div>
-        </div>
-      )}
-
       {loading ? <div style={{ textAlign:"center", padding:"40px", color:"#9CA3AF" }}>로딩 중...</div> : <>
         <StoreTable title="버닝 매장 (계약 중)" stores={burning} onDelete={handleDelete} />
         <StoreTable title="버닝 매장 (계약 만료)" stores={expired} onDelete={handleDelete} />
