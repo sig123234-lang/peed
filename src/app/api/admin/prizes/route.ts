@@ -2,22 +2,20 @@
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
-  const { name, emoji, cost, maxWinners, maxApply, value, drawAt } = await req.json()
+  const { name, emoji, cost, maxWinners, maxApply, value } = await req.json()
 
-  const data: any = {
-    name,
-    emoji,
-    cost: Number(cost),
-    maxWinners: Number(maxWinners),
-    maxApply: Number(maxApply),
-    value,
-    active: true,
-    weekStart: new Date(),
-  }
-
-  if (drawAt) data.drawAt = new Date(drawAt)
-
-  const prize = await (prisma.prize.create as any)({ data })
+  const prize = await prisma.prize.create({
+    data: {
+      name,
+      emoji,
+      cost: Number(cost),
+      maxWinners: Number(maxWinners),
+      maxApply: Number(maxApply),
+      value,
+      active: true,
+      weekStart: new Date(),
+    },
+  })
 
   return NextResponse.json(prize, { status: 201 })
 }
