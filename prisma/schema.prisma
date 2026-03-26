@@ -63,6 +63,8 @@ model Store {
   contractStart DateTime
   contractWeeks Int       @default(3)
   monthlyFee    Int       @default(100000)
+  storeType     String    @default("burning")
+  prospectStatus String?
   createdAt     DateTime  @default(now())
   reviews       Review[]
 }
