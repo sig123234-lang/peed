@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
@@ -10,6 +10,8 @@ export async function GET() {
       email: true,
       pb: true,
       reviewCount: true,
+      phoneNumber: true,
+      referralCode: true,
       createdAt: true,
     }
   })

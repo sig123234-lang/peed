@@ -20,20 +20,28 @@ export default function AdminUsersPage() {
         <table style={{ width:"100%", borderCollapse:"collapse" }}>
           <thead>
             <tr style={{ borderBottom:"1px solid #E5E9FF" }}>
-              {["이름", "이메일", "보유 PB", "리뷰 수", "가입일"].map(h => (
+              {["고유번호", "이름", "이메일", "연락처", "보유 PB", "리뷰 수", "가입일"].map(h => (
                 <th key={h} style={{ padding:"12px 16px", textAlign:"left", fontSize:"11px", fontWeight:"700", color:"#9CA3AF", letterSpacing:"0.5px" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} style={{ padding:"40px", textAlign:"center", color:"#9CA3AF", fontSize:"13px" }}>로딩 중...</td></tr>
+              <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"#9CA3AF", fontSize:"13px" }}>로딩 중...</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan={5} style={{ padding:"40px", textAlign:"center", color:"#9CA3AF", fontSize:"13px" }}>등록된 유저가 없습니다</td></tr>
+              <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"#9CA3AF", fontSize:"13px" }}>등록된 유저가 없습니다</td></tr>
             ) : users.map(user => (
               <tr key={user.id} style={{ borderBottom:"1px solid #F5F7FF" }}>
+                <td style={{ padding:"14px 16px" }}>
+                  <span style={{ background:"#F1F5F9", color:"#475569", borderRadius:"6px", padding:"2px 8px", fontSize:"12px", fontWeight:"700", fontFamily:"monospace" }}>
+                    {user.referralCode?.slice(0,8).toUpperCase() ?? "-"}
+                  </span>
+                </td>
                 <td style={{ padding:"14px 16px", fontSize:"13px", fontWeight:"600", color:"#1A1F36" }}>{user.name ?? "-"}</td>
                 <td style={{ padding:"14px 16px", fontSize:"13px", color:"#6B7280" }}>{user.email}</td>
+                <td style={{ padding:"14px 16px", fontSize:"13px", color: user.phoneNumber ? "#1A1F36" : "#9CA3AF" }}>
+                  {user.phoneNumber ?? "미등록"}
+                </td>
                 <td style={{ padding:"14px 16px" }}>
                   <span style={{ background:"#EEF2FF", color:"#4A6CF7", borderRadius:"6px", padding:"2px 8px", fontSize:"12px", fontWeight:"700" }}>
                     {user.pb ?? 0} PB
