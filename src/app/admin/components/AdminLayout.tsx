@@ -8,6 +8,7 @@ const NAV = [
   { href: "/admin/stores", label: "매장 관리" },
   { href: "/admin/users", label: "유저 관리" },
   { href: "/admin/reviews", label: "리뷰 내역" },
+  { href: "/admin/winners", label: "당첨 내역" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div style={{ marginBottom:"16px" }}>
             <div style={{ fontSize:"10px", fontWeight:"700", color:"#9CA3AF", letterSpacing:"1.5px", padding:"0 8px", marginBottom:"4px" }}>OVERVIEW</div>
             {NAV.slice(0, 1).map(item => {
-              const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
+              const active = pathname === item.href
               return (
                 <Link key={item.href} href={item.href} style={{ textDecoration:"none" }}>
                   <div style={{ display:"flex", alignItems:"center", padding:"8px 10px", borderRadius:"8px", background: active ? "#EEF2FF" : "transparent", fontSize:"12px", fontWeight: active ? "700" : "500", color: active ? "#4A6CF7" : "#6B7280", gap:"8px" }}>

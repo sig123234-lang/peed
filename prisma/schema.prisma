@@ -97,6 +97,7 @@ model Prize {
   maxApply     Int           @default(500)
   active       Boolean       @default(true)
   weekStart    DateTime      @default(now())
+  drawAt       DateTime?
   createdAt    DateTime      @default(now())
   applications Application[]
   winners      Winner[]
