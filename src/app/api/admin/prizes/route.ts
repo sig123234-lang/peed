@@ -1,22 +1,24 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
-  const { name, emoji, cost, maxWinners, maxApply, value } = await req.json()
+  const { name, imageUrl, cost, maxWinners, maxApply, value, drawAt } = await req.json()
 
-  const prize = await prisma.prize.create({
-    data: {
-      name,
-      emoji,
-      cost: Number(cost),
-      maxWinners: Number(maxWinners),
-      maxApply: Number(maxApply),
-      value,
-      active: true,
-      weekStart: new Date(),
-    },
-  })
+  const data: any = {
+    name,
+    emoji: "",
+    cost: Number(cost),
+    maxWinners: Number(maxWinners),
+    maxApply: Number(maxApply),
+    value,
+    active: true,
+    weekStart: new Date(),
+  }
 
+  if (drawAt) data.drawAt = new Date(drawAt)
+  if (imageUrl) data.imageUrl = imageUrl
+
+  const prize = await (prisma.prize.create as any)({ data })
   return NextResponse.json(prize, { status: 201 })
 }
 

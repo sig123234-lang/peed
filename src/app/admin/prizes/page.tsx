@@ -1,26 +1,44 @@
 "use client"
-import { useEffect, useState } from "react"
-
-const inputStyle = { width:"100%", padding:"8px 12px", borderRadius:"8px", border:"1px solid #E5E9FF", fontSize:"13px", outline:"none", boxSizing:"border-box" as const }
-const labelStyle = { fontSize:"12px", fontWeight:"600" as const, color:"#6B7280", display:"block" as const, marginBottom:"4px" }
+import { useEffect, useState, useRef } from "react"
 
 export default function AdminPrizesPage() {
   const [prizes, setPrizes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ name:"", emoji:"", cost:100, maxWinners:1, maxApply:500, value:"", drawAt:"" })
+  const [uploading, setUploading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState("")
+  const [form, setForm] = useState({ name:"", imageUrl:"", cost:100, maxWinners:1, maxApply:500, value:"", drawAt:"" })
+  const fileRef = useRef<any>(null)
 
   useEffect(() => {
     fetch("/api/prizes").then(r => r.json()).then(d => setPrizes(Array.isArray(d) ? d : [])).finally(() => setLoading(false))
   }, [])
 
+  const handleImageUpload = async (e: any) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setPreviewUrl(URL.createObjectURL(file))
+    setUploading(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch('/api/upload', { method: 'POST', body: formData })
+    const data = await res.json()
+    setForm(f => ({ ...f, imageUrl: data.url }))
+    setUploading(false)
+  }
+
   const handleSubmit = async () => {
     if (!form.name) return
-    const res = await fetch("/api/admin/prizes", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) })
+    const res = await fetch("/api/admin/prizes", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(form)
+    })
     const data = await res.json()
     setPrizes([data, ...prizes])
     setShowForm(false)
-    setForm({ name:"", emoji:"", cost:100, maxWinners:1, maxApply:500, value:"", drawAt:"" })
+    setPreviewUrl("")
+    setForm({ name:"", imageUrl:"", cost:100, maxWinners:1, maxApply:500, value:"", drawAt:"" })
   }
 
   const handleDelete = async (id: number) => {
@@ -28,6 +46,9 @@ export default function AdminPrizesPage() {
     await fetch(`/api/admin/prizes?id=${id}`, { method:"DELETE" })
     setPrizes(prizes.filter(p => p.id !== id))
   }
+
+  const inputStyle = { width:"100%", padding:"8px 12px", borderRadius:"8px", border:"1px solid #E5E9FF", fontSize:"13px", outline:"none", boxSizing:"border-box" as const }
+  const labelStyle = { fontSize:"12px", fontWeight:"600" as const, color:"#6B7280", display:"block" as const, marginBottom:"4px" }
 
   return (
     <div style={{ padding:"24px" }}>
@@ -50,10 +71,29 @@ export default function AdminPrizesPage() {
               <label style={labelStyle}>경품명</label>
               <input style={inputStyle} value={form.name} onChange={e => setForm({...form, name:e.target.value})} placeholder="경품 이름 입력" />
             </div>
+
+            {/* 이미지 업로드 */}
             <div>
-              <label style={labelStyle}>이모지 (선택)</label>
-              <input style={inputStyle} value={form.emoji} onChange={e => setForm({...form, emoji:e.target.value})} placeholder="🎁" />
+              <label style={labelStyle}>경품 이미지 (1:1 비율 권장)</label>
+              <input ref={fileRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleImageUpload} />
+              <div onClick={() => fileRef.current?.click()}
+                style={{ width:"100%", aspectRatio:"1", border:"2px dashed #E5E9FF", borderRadius:"10px", display:"flex", flexDirection:"column" as const, alignItems:"center", justifyContent:"center", cursor:"pointer", background:"#F8F9FF", overflow:"hidden", position:"relative" as const }}>
+                {previewUrl ? (
+                  <img src={previewUrl} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                ) : (
+                  <>
+                    <div style={{ fontSize:"24px", marginBottom:"4px" }}>📷</div>
+                    <div style={{ fontSize:"11px", color:"#9CA3AF" }}>클릭하여 업로드</div>
+                  </>
+                )}
+                {uploading && (
+                  <div style={{ position:"absolute", inset:0, background:"rgba(255,255,255,0.8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"12px", color:"#4A6CF7" }}>
+                    업로드 중...
+                  </div>
+                )}
+              </div>
             </div>
+
             <div>
               <label style={labelStyle}>응모 PB</label>
               <input style={inputStyle} type="number" value={form.cost} onChange={e => setForm({...form, cost:Number(e.target.value)})} />
@@ -76,11 +116,11 @@ export default function AdminPrizesPage() {
             </div>
           </div>
           <div style={{ display:"flex", gap:"8px" }}>
-            <button onClick={handleSubmit}
-              style={{ padding:"8px 20px", background:"#4A6CF7", color:"#fff", border:"none", borderRadius:"8px", fontSize:"13px", fontWeight:"600", cursor:"pointer" }}>
+            <button onClick={handleSubmit} disabled={uploading}
+              style={{ padding:"8px 20px", background: uploading ? "#C4B5FD" : "#4A6CF7", color:"#fff", border:"none", borderRadius:"8px", fontSize:"13px", fontWeight:"600", cursor: uploading ? "not-allowed" : "pointer" }}>
               저장
             </button>
-            <button onClick={() => setShowForm(false)}
+            <button onClick={() => { setShowForm(false); setPreviewUrl("") }}
               style={{ padding:"8px 20px", background:"none", color:"#6B7280", border:"1px solid #E5E9FF", borderRadius:"8px", fontSize:"13px", cursor:"pointer" }}>
               취소
             </button>
@@ -92,19 +132,28 @@ export default function AdminPrizesPage() {
         <table style={{ width:"100%", borderCollapse:"collapse" }}>
           <thead>
             <tr style={{ borderBottom:"1px solid #E5E9FF" }}>
-              {["경품명", "응모 PB", "최대 응모", "당첨자 수", "추첨 일시", ""].map(h => (
+              {["이미지", "경품명", "응모 PB", "최대 응모", "당첨자 수", "추첨 일시", ""].map(h => (
                 <th key={h} style={{ padding:"12px 16px", textAlign:"left", fontSize:"11px", fontWeight:"700", color:"#9CA3AF", letterSpacing:"0.5px" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} style={{ padding:"40px", textAlign:"center", color:"#9CA3AF", fontSize:"13px" }}>로딩 중...</td></tr>
+              <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"#9CA3AF", fontSize:"13px" }}>로딩 중...</td></tr>
             ) : prizes.length === 0 ? (
-              <tr><td colSpan={6} style={{ padding:"40px", textAlign:"center", color:"#9CA3AF", fontSize:"13px" }}>등록된 경품이 없습니다</td></tr>
+              <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"#9CA3AF", fontSize:"13px" }}>등록된 경품이 없습니다</td></tr>
             ) : prizes.map(prize => (
               <tr key={prize.id} style={{ borderBottom:"1px solid #F5F7FF" }}>
-                <td style={{ padding:"14px 16px", fontSize:"13px", fontWeight:"600", color:"#1A1F36" }}>{prize.emoji} {prize.name}</td>
+                <td style={{ padding:"10px 16px" }}>
+                  {prize.imageUrl ? (
+                    <img src={prize.imageUrl} style={{ width:"44px", height:"44px", borderRadius:"8px", objectFit:"cover" }} />
+                  ) : (
+                    <div style={{ width:"44px", height:"44px", borderRadius:"8px", background:"#EEF2FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"20px" }}>
+                      {prize.emoji || "🎁"}
+                    </div>
+                  )}
+                </td>
+                <td style={{ padding:"14px 16px", fontSize:"13px", fontWeight:"600", color:"#1A1F36" }}>{prize.name}</td>
                 <td style={{ padding:"14px 16px", fontSize:"13px", color:"#6B7280" }}>{prize.cost} PB</td>
                 <td style={{ padding:"14px 16px", fontSize:"13px", color:"#6B7280" }}>{prize.maxApply}명</td>
                 <td style={{ padding:"14px 16px", fontSize:"13px", color:"#6B7280" }}>{prize.maxWinners}명</td>
