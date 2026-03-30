@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     weekStart: new Date(),
   }
 
-  if (drawAt) data.drawAt = new Date(drawAt)
+  if (drawAt) { const d = new Date(drawAt); data.drawAt = d; }
   if (imageUrl) data.imageUrl = imageUrl
 
   const prize = await (prisma.prize.create as any)({ data })
