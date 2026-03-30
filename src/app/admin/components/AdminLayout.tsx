@@ -9,6 +9,7 @@ const NAV = [
   { href: "/admin/users", label: "유저 관리" },
   { href: "/admin/reviews", label: "리뷰 내역" },
   { href: "/admin/winners", label: "당첨 내역" },
+  { href: "/admin/insights", label: "인사이트" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

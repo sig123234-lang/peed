@@ -17,6 +17,8 @@ model User {
   pb            Int           @default(0)
   reviewCount   Int           @default(0)
   phoneNumber   String?
+  gender        String?
+  birthYear     Int?
   createdAt     DateTime      @default(now())
   accounts      Account[]
   reviews       Review[]
