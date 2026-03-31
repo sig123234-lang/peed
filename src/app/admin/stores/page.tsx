@@ -96,6 +96,8 @@ export default function AdminStoresPage() {
   const [page, setPage] = useState<"main" | "detail" | "sms" | "confirm">("main")
   const [smsType, setSmsType] = useState<"inquiry" | "cancel">("inquiry")
   const [confirmTarget, setConfirmTarget] = useState<{ start: string; weeks: number; fee: number; pb: number } | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [addForm, setAddForm] = useState({ name: "", category: "", address: "", contactName: "", contactPhone: "", naverUrl: "", storeType: "prospect" as "burning" | "prospect", memo: "" })
   const [toast, setToast] = useState<string | null>(null)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
@@ -512,6 +514,67 @@ export default function AdminStoresPage() {
         </div>
       )}
 
+      {/* 매장 추가 모달 */}
+      {showAddModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: S.surface, border: S.border2, borderRadius: S.radiusLg, width: "100%", maxWidth: "480px", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ padding: "14px 16px", borderBottom: S.border, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: S.surface, zIndex: 1 }}>
+              <div style={{ fontSize: "15px", fontWeight: 600, color: S.text }}>매장 추가</div>
+              <button onClick={() => setShowAddModal(false)} style={{ background: "none", border: "none", color: S.text2, fontSize: "18px", cursor: "pointer" }}>✕</button>
+            </div>
+            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>유형</label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {(["prospect", "burning"] as const).map(t => (
+                    <button key={t} onClick={() => setAddForm(f => ({ ...f, storeType: t }))}
+                      style={{ flex: 1, padding: "9px", fontSize: "13px", borderRadius: "8px", border: `0.5px solid ${addForm.storeType === t ? (t === "burning" ? S.amber : S.green) : S.border2.replace("0.5px solid ", "")}`, background: addForm.storeType === t ? (t === "burning" ? S.amberBg : S.greenBg) : "transparent", color: addForm.storeType === t ? (t === "burning" ? S.amber : S.green) : S.text2, cursor: "pointer", fontWeight: addForm.storeType === t ? 600 : 400 }}>
+                      {t === "burning" ? "🔥 버닝" : "🏪 영업중"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {[
+                { label: "매장명 *", key: "name", placeholder: "매장 이름" },
+                { label: "카테고리", key: "category", placeholder: "한식, 카페, 이자카야 등" },
+                { label: "주소", key: "address", placeholder: "서울 마포구..." },
+                { label: "담당자 이름", key: "contactName", placeholder: "홍길동" },
+                { label: "담당자 연락처", key: "contactPhone", placeholder: "010-0000-0000" },
+                { label: "네이버 플레이스 URL", key: "naverUrl", placeholder: "https://..." },
+              ].map(({ label, key, placeholder }) => (
+                <div key={key}>
+                  <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>{label}</label>
+                  <input value={(addForm as any)[key]} onChange={e => setAddForm(f => ({ ...f, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit" }} />
+                </div>
+              ))}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>내부 메모</label>
+                <textarea value={addForm.memo} onChange={e => setAddForm(f => ({ ...f, memo: e.target.value }))}
+                  placeholder="내부 메모..."
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit", resize: "vertical", minHeight: "60px" }} />
+              </div>
+            </div>
+            <div style={{ padding: "12px 16px", borderTop: S.border, display: "flex", gap: "8px" }}>
+              <button onClick={() => setShowAddModal(false)}
+                style={{ flex: 1, padding: "10px", fontSize: "13px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text2, cursor: "pointer" }}>취소</button>
+              <button onClick={async () => {
+                if (!addForm.name.trim()) return alert("매장명을 입력해주세요")
+                const res = await fetch("/api/admin/stores", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(addForm) })
+                if (!res.ok) return alert("저장 실패")
+                const updated = await fetch("/api/admin/stores").then(r => r.json())
+                setStores(Array.isArray(updated) ? updated : [])
+                setShowAddModal(false)
+                setAddForm({ name: "", category: "", address: "", contactName: "", contactPhone: "", naverUrl: "", storeType: "prospect", memo: "" })
+                showToast("매장이 추가됐어요!")
+              }}
+                style={{ flex: 2, padding: "10px", fontSize: "13px", fontWeight: 600, borderRadius: "8px", border: `0.5px solid ${S.accent}`, background: S.accentBg, color: S.accent, cursor: "pointer" }}>저장</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 뒤로가기 */}
       {page !== "main" && (
         <button onClick={() => {
@@ -525,6 +588,22 @@ export default function AdminStoresPage() {
       {/* ── 메인 ── */}
       {page === "main" && (
         <>
+          {/* 페이지 헤더 */}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "20px" }}>
+            <div>
+              <div style={{ fontSize: "18px", fontWeight: 700, color: S.text }}>매장 관리</div>
+              <div style={{ fontSize: "12px", color: S.text3, marginTop: "3px" }}>
+                버닝 매장 계약 관리, 종료 매장 이력, 영업중 매장 영업 현황을 한눈에 확인하세요
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              style={{ padding: "8px 16px", borderRadius: "8px", border: `0.5px solid ${S.accent}`, background: S.accentBg, color: S.accent, fontSize: "13px", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+            >
+              + 매장 추가
+            </button>
+          </div>
+
           {/* KPI */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "10px", marginBottom: "20px" }}>
             {[
@@ -588,3 +667,4 @@ export default function AdminStoresPage() {
     </div>
   )
 }
+

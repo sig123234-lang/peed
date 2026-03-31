@@ -519,6 +519,14 @@ export default function AdminWinnersPage() {
       {/* ── 메인 ── */}
       {page === "main" && (
         <>
+          {/* 페이지 헤더 */}
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "18px", fontWeight: 700, color: S.text }}>당첨 내역</div>
+            <div style={{ fontSize: "12px", color: S.text3, marginTop: "3px" }}>
+              추첨 당첨자 목록, 경품 수령 현황, 미수령 관리 및 알림 발송을 확인하세요
+            </div>
+          </div>
+
           {/* KPI */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "10px", marginBottom: "20px" }}>
             {[

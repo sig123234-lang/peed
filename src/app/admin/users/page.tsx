@@ -496,6 +496,14 @@ export default function AdminUsersPage() {
       {/* ── 메인 ── */}
       {page === "main" && (
         <>
+          {/* 페이지 헤더 */}
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "18px", fontWeight: 700, color: S.text }}>유저 관리</div>
+            <div style={{ fontSize: "12px", color: S.text3, marginTop: "3px" }}>
+              전체 유저 PB 현황, 부정 의심 유저 감지 및 상품 증정 취소 처리를 관리하세요
+            </div>
+          </div>
+
           {/* KPI */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "10px", marginBottom: "20px" }}>
             {[
