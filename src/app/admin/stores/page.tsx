@@ -37,10 +37,10 @@ type Store = {
 
 // ── 디자인 토큰 ────────────────────────────────────
 const S = {
-  bg: "#0A0A0F", surface: "#111118", surface2: "#16161F",
-  border: "0.5px solid rgba(255,255,255,0.06)",
-  border2: "0.5px solid rgba(255,255,255,0.1)",
-  text: "#F0EFF8", text2: "#9896B0", text3: "#5C5A72",
+  bg: "#F5F7FF", surface: "#FFFFFF", surface2: "#F8F9FF",
+  border: "1px solid #E5E9FF",
+  border2: "1px solid #D4DCFF",
+  text: "#1A1F36", text2: "#6B7280", text3: "#9CA3AF",
   accent: "#7C6EF5", accentBg: "rgba(124,110,245,0.12)",
   green: "#23D18B", greenBg: "rgba(35,209,139,0.12)",
   red: "#F4645F", redBg: "rgba(244,100,95,0.12)",
@@ -71,7 +71,7 @@ function getAreaFromAddress(addr: string): string {
 
 // ── 컴포넌트 ───────────────────────────────────────
 const inp: React.CSSProperties = {
-  padding: "7px 10px", borderRadius: "8px", border: "0.5px solid rgba(255,255,255,0.1)",
+  padding: "7px 10px", borderRadius: "8px", border: "1px solid #D4DCFF",
   background: S.surface2, color: S.text, fontSize: "12px", outline: "none", width: "100%",
   fontFamily: "inherit",
 }

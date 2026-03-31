@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react"
 
 const S = {
-  bg: "#0A0A0F", surface: "#111118", surface2: "#16161F", surface3: "#1C1C28",
-  border: "1px solid rgba(255,255,255,0.06)", border2: "1px solid rgba(255,255,255,0.1)",
+  bg: "#F5F7FF", surface: "#FFFFFF", surface2: "#F8F9FF", surface3: "#EEF2FF",
+  border: "1px solid #E5E9FF", border2: "1px solid #D4DCFF",
   accent: "#7C6EF5", accent2: "#9D91F7", accentBg: "rgba(124,110,245,0.12)",
-  text: "#F0EFF8", text2: "#9896B0", text3: "#5C5A72",
+  text: "#1A1F36", text2: "#6B7280", text3: "#9CA3AF",
   green: "#23D18B", greenBg: "rgba(35,209,139,0.12)",
   red: "#F4645F", redBg: "rgba(244,100,95,0.12)",
   amber: "#E8A838", amberBg: "rgba(232,168,56,0.12)",
@@ -106,7 +106,7 @@ export default function AdminReviewsPage() {
   })).sort((a, b) => b.count - a.count).slice(0, 5)
 
   const inp: React.CSSProperties = {
-    padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)",
+    padding: "8px 12px", borderRadius: "8px", border: "1px solid #D4DCFF",
     background: S.surface2, color: S.text, fontSize: "12px", outline: "none",
   }
   const lbl: React.CSSProperties = {
