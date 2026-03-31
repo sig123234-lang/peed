@@ -37,10 +37,10 @@ type Store = {
 
 // ── 디자인 토큰 ────────────────────────────────────
 const S = {
-  bg: "#F5F7FF", surface: "#FFFFFF", surface2: "#F8F9FF",
-  border: "1px solid #E5E9FF",
-  border2: "1px solid #D4DCFF",
-  text: "#1A1F36", text2: "#6B7280", text3: "#9CA3AF",
+  bg: "#0A0A0F", surface: "#111118", surface2: "#16161F",
+  border: "0.5px solid rgba(255,255,255,0.06)",
+  border2: "0.5px solid rgba(255,255,255,0.1)",
+  text: "#F0EFF8", text2: "#9896B0", text3: "#5C5A72",
   accent: "#7C6EF5", accentBg: "rgba(124,110,245,0.12)",
   green: "#23D18B", greenBg: "rgba(35,209,139,0.12)",
   red: "#F4645F", redBg: "rgba(244,100,95,0.12)",
@@ -71,7 +71,7 @@ function getAreaFromAddress(addr: string): string {
 
 // ── 컴포넌트 ───────────────────────────────────────
 const inp: React.CSSProperties = {
-  padding: "7px 10px", borderRadius: "8px", border: "1px solid #D4DCFF",
+  padding: "7px 10px", borderRadius: "8px", border: "0.5px solid rgba(255,255,255,0.1)",
   background: S.surface2, color: S.text, fontSize: "12px", outline: "none", width: "100%",
   fontFamily: "inherit",
 }
@@ -97,7 +97,7 @@ export default function AdminStoresPage() {
   const [smsType, setSmsType] = useState<"inquiry" | "cancel">("inquiry")
   const [confirmTarget, setConfirmTarget] = useState<{ start: string; weeks: number; fee: number; pb: number } | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
-  const [addForm, setAddForm] = useState({ name: "", category: "", address: "", contactName: "", contactPhone: "", naverUrl: "", storeType: "prospect" as "burning" | "prospect", memo: "" })
+  const [addForm, setAddForm] = useState<any>({ name: "", category: "", address: "", contactName: "", contactPhone: "", naverUrl: "", storeType: "prospect" as "burning" | "prospect", memo: "", contractStart: "", contractWeeks: "4", contractFee: "10", pb: "10" })
   const [toast, setToast] = useState<string | null>(null)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
@@ -516,60 +516,237 @@ export default function AdminStoresPage() {
 
       {/* 매장 추가 모달 */}
       {showAddModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: S.surface, border: S.border2, borderRadius: S.radiusLg, width: "100%", maxWidth: "480px", maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ padding: "14px 16px", borderBottom: S.border, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: S.surface, zIndex: 1 }}>
-              <div style={{ fontSize: "15px", fontWeight: 600, color: S.text }}>매장 추가</div>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: S.surface, border: S.border2, borderRadius: S.radiusLg, width: "100%", maxWidth: "500px", maxHeight: "92vh", overflowY: "auto" }}>
+            {/* 헤더 */}
+            <div style={{ padding: "14px 16px", borderBottom: S.border, display: "flex", alignItems: "flex-start", justifyContent: "space-between", position: "sticky", top: 0, background: S.surface, zIndex: 1 }}>
+              <div>
+                <div style={{ fontSize: "15px", fontWeight: 600, color: S.text }}>매장 추가</div>
+                <div style={{ fontSize: "11px", color: S.text3, marginTop: "2px" }}>* 필수 항목</div>
+              </div>
               <button onClick={() => setShowAddModal(false)} style={{ background: "none", border: "none", color: S.text2, fontSize: "18px", cursor: "pointer" }}>✕</button>
             </div>
-            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+
+            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+
+              {/* 유형 */}
               <div>
-                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>유형</label>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>매장 유형 <span style={{ color: S.red }}>*</span></label>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  {(["prospect", "burning"] as const).map(t => (
+                  {(["burning", "prospect"] as const).map(t => (
                     <button key={t} onClick={() => setAddForm(f => ({ ...f, storeType: t }))}
-                      style={{ flex: 1, padding: "9px", fontSize: "13px", borderRadius: "8px", border: `0.5px solid ${addForm.storeType === t ? (t === "burning" ? S.amber : S.green) : S.border2.replace("0.5px solid ", "")}`, background: addForm.storeType === t ? (t === "burning" ? S.amberBg : S.greenBg) : "transparent", color: addForm.storeType === t ? (t === "burning" ? S.amber : S.green) : S.text2, cursor: "pointer", fontWeight: addForm.storeType === t ? 600 : 400 }}>
-                      {t === "burning" ? "🔥 버닝" : "🏪 영업중"}
+                      style={{ flex: 1, padding: "10px 6px", fontSize: "13px", borderRadius: "8px", border: `0.5px solid ${addForm.storeType === t ? (t === "burning" ? S.amber : S.green) : "rgba(255,255,255,0.1)"}`, background: addForm.storeType === t ? (t === "burning" ? S.amberBg : S.greenBg) : "transparent", color: addForm.storeType === t ? (t === "burning" ? S.amber : S.green) : S.text2, cursor: "pointer", fontWeight: addForm.storeType === t ? 600 : 400, textAlign: "center" as const }}>
+                      {t === "burning" ? "🔥 버닝 매장" : "🏪 영업중 매장"}
+                      <div style={{ fontSize: "10px", opacity: 0.7, marginTop: "2px" }}>{t === "burning" ? "계약 체결된 매장" : "계약 전 잠재 고객"}</div>
                     </button>
                   ))}
                 </div>
               </div>
-              {[
-                { label: "매장명 *", key: "name", placeholder: "매장 이름" },
-                { label: "카테고리", key: "category", placeholder: "한식, 카페, 이자카야 등" },
-                { label: "주소", key: "address", placeholder: "서울 마포구..." },
-                { label: "담당자 이름", key: "contactName", placeholder: "홍길동" },
-                { label: "담당자 연락처", key: "contactPhone", placeholder: "010-0000-0000" },
-                { label: "네이버 플레이스 URL", key: "naverUrl", placeholder: "https://..." },
-              ].map(({ label, key, placeholder }) => (
-                <div key={key}>
-                  <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>{label}</label>
-                  <input value={(addForm as any)[key]} onChange={e => setAddForm(f => ({ ...f, [key]: e.target.value }))}
-                    placeholder={placeholder}
+
+              {/* 매장명 */}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>매장명 <span style={{ color: S.red }}>*</span></label>
+                <input value={addForm.name} onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="ex. 스타벅스 홍대점"
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit" }} />
+              </div>
+
+              {/* 카테고리 */}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>카테고리 <span style={{ color: S.red }}>*</span></label>
+                <select value={addForm.category} onChange={e => setAddForm(f => ({ ...f, category: e.target.value }))}
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit" }}>
+                  <option value="">카테고리 선택</option>
+                  <optgroup label="🍽️ 음식점">
+                    <option>한식</option><option>중식</option><option>일식</option><option>양식</option>
+                    <option>아시안</option><option>육류·구이</option><option>패스트푸드</option><option>분식</option><option>해산물</option>
+                  </optgroup>
+                  <optgroup label="☕ 카페·디저트">
+                    <option>카페</option><option>베이커리</option><option>디저트</option><option>버블티·음료</option>
+                  </optgroup>
+                  <optgroup label="🍺 술집·바">
+                    <option>이자카야</option><option>바·펍</option><option>호프</option><option>와인바</option><option>칵테일바</option>
+                  </optgroup>
+                  <optgroup label="🎮 체험·액티비티">
+                    <option>방탈출</option><option>노래방</option><option>볼링·당구</option><option>공방·클래스</option><option>PC방·오락</option><option>스포츠·레저</option>
+                  </optgroup>
+                  <optgroup label="💄 뷰티·웰니스">
+                    <option>헤어샵</option><option>네일</option><option>피부관리</option><option>필라테스·요가</option><option>헬스·PT</option>
+                  </optgroup>
+                  <optgroup label="🛍️ 쇼핑">
+                    <option>편집샵</option><option>의류</option><option>뷰티샵</option><option>전자기기</option>
+                  </optgroup>
+                  <optgroup label="기타">
+                    <option>숙박</option><option>주유·충전</option><option>기타</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              {/* 주소 */}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>주소 <span style={{ color: S.red }}>*</span></label>
+                <input value={addForm.address} onChange={e => {
+                  const addr = e.target.value
+                  setAddForm(f => ({ ...f, address: addr }))
+                }}
+                  placeholder="ex. 서울 마포구 홍익로 19, 2층"
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit" }} />
+                <div style={{ fontSize: "11px", color: S.text3, marginTop: "4px" }}>입력하면 지역이 자동으로 인식돼요</div>
+              </div>
+
+              {/* 담당자 */}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>커스터머 연락처 <span style={{ color: S.red }}>*</span></label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <input value={addForm.contactName} onChange={e => setAddForm(f => ({ ...f, contactName: e.target.value }))}
+                    placeholder="담당자 이름"
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit" }} />
+                  <input value={addForm.contactPhone} onChange={e => setAddForm(f => ({ ...f, contactPhone: e.target.value }))}
+                    placeholder="010-0000-0000" type="tel"
                     style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit" }} />
                 </div>
-              ))}
-              <div>
-                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>내부 메모</label>
-                <textarea value={addForm.memo} onChange={e => setAddForm(f => ({ ...f, memo: e.target.value }))}
-                  placeholder="내부 메모..."
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit", resize: "vertical", minHeight: "60px" }} />
               </div>
+
+              {/* 네이버 플레이스 */}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>네이버 플레이스 URL <span style={{ color: S.red }}>*</span></label>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <input value={addForm.naverUrl} onChange={e => setAddForm(f => ({ ...f, naverUrl: e.target.value }))}
+                    placeholder="https://naver.me/..."
+                    style={{ flex: 1, padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit" }} />
+                  {addForm.naverUrl && (
+                    <a href={addForm.naverUrl} target="_blank" rel="noreferrer"
+                      style={{ padding: "8px 12px", borderRadius: "8px", border: "0.5px solid rgba(3,199,90,0.4)", background: "rgba(3,199,90,0.1)", color: "#03C75A", fontSize: "12px", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center" }}>확인</a>
+                  )}
+                </div>
+              </div>
+
+              {/* 계약 정보 — 버닝만 */}
+              {addForm.storeType === "burning" && (
+                <div style={{ background: S.amberBg, border: `0.5px solid ${S.amber}33`, borderRadius: "10px", padding: "14px" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 600, color: S.amber, marginBottom: "12px", paddingBottom: "8px", borderBottom: `0.5px solid ${S.amber}22` }}>계약 정보</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "8px" }}>
+                    <div>
+                      <label style={{ fontSize: "10px", color: S.text3, display: "block", marginBottom: "4px" }}>계약 시작일 *</label>
+                      <input value={addForm.contractStart || ""} onChange={e => setAddForm(f => ({ ...f, contractStart: e.target.value }))}
+                        type="date" style={{ width: "100%", padding: "7px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "12px", outline: "none", fontFamily: "inherit" }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "10px", color: S.text3, display: "block", marginBottom: "4px" }}>계약 기간 *</label>
+                      <select value={addForm.contractWeeks || "4"} onChange={e => setAddForm(f => ({ ...f, contractWeeks: e.target.value }))}
+                        style={{ width: "100%", padding: "7px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "12px", outline: "none", fontFamily: "inherit" }}>
+                        <option value="1">1주</option><option value="2">2주</option><option value="3">3주</option>
+                        <option value="4">4주</option><option value="6">6주</option><option value="8">8주</option><option value="12">12주</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div>
+                      <label style={{ fontSize: "10px", color: S.text3, display: "block", marginBottom: "4px" }}>계약금 *</label>
+                      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                        <input value={addForm.contractFee || "10"} onChange={e => setAddForm(f => ({ ...f, contractFee: e.target.value }))}
+                          type="number" style={{ flex: 1, padding: "7px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "12px", outline: "none", fontFamily: "inherit" }} />
+                        <span style={{ fontSize: "12px", color: S.text2, flexShrink: 0 }}>만원</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "10px", color: S.text3, display: "block", marginBottom: "4px" }}>PB 적립</label>
+                      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                        <input value={addForm.pb || "10"} onChange={e => setAddForm(f => ({ ...f, pb: e.target.value }))}
+                          type="number" style={{ flex: 1, padding: "7px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "12px", outline: "none", fontFamily: "inherit" }} />
+                        <span style={{ fontSize: "12px", color: S.text2, flexShrink: 0 }}>PB</span>
+                      </div>
+                      <div style={{ fontSize: "10px", color: S.text3, marginTop: "2px" }}>기본 10 PB 고정</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 매장 사진 */}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>매장 사진</label>
+                <div
+                  onClick={() => document.getElementById("store-photo-input")?.click()}
+                  style={{ border: `1.5px dashed rgba(255,255,255,0.15)`, borderRadius: "10px", padding: "20px", textAlign: "center" as const, cursor: "pointer", background: S.surface2, transition: "all .15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)")}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)")}
+                >
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>📷</div>
+                  <div style={{ fontSize: "13px", color: S.text2 }}>클릭하여 사진 업로드</div>
+                  <div style={{ fontSize: "11px", color: S.text3, marginTop: "3px" }}>JPG, PNG · 최대 5장</div>
+                  <div id="photo-preview" style={{ display: "flex", gap: "6px", flexWrap: "wrap" as const, marginTop: "10px", justifyContent: "center" }}></div>
+                </div>
+                <input id="store-photo-input" type="file" accept="image/*" multiple style={{ display: "none" }}
+                  onChange={e => {
+                    const files = Array.from(e.target.files || []).slice(0, 5)
+                    const preview = document.getElementById("photo-preview")
+                    if (preview) {
+                      preview.innerHTML = ""
+                      files.forEach(f => {
+                        const url = URL.createObjectURL(f)
+                        const img = document.createElement("img")
+                        img.src = url
+                        img.style.cssText = "width:56px;height:56px;object-fit:cover;border-radius:6px;"
+                        preview.appendChild(img)
+                      })
+                    }
+                  }} />
+              </div>
+
+              {/* 내부 메모 */}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>내부 메모 <span style={{ fontSize: "10px", fontWeight: 400 }}>(앱 미노출)</span></label>
+                <textarea value={addForm.memo} onChange={e => setAddForm(f => ({ ...f, memo: e.target.value }))}
+                  placeholder="영업 과정, 특이사항, 재계약 가능성 등 자유롭게 입력"
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit", resize: "vertical" as const, minHeight: "68px" }} />
+              </div>
+
+              {/* 담당 관리자 */}
+              <div>
+                <label style={{ fontSize: "11px", color: S.text3, display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>담당 관리자</label>
+                <select value={addForm.manager || ""} onChange={e => setAddForm((f: any) => ({ ...f, manager: e.target.value }))}
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text, fontSize: "13px", outline: "none", fontFamily: "inherit" }}>
+                  <option value="">담당 관리자 선택</option>
+                  <option value="peedmanager">peedmanager</option>
+                  <option value="운영팀 A">운영팀 A</option>
+                  <option value="운영팀 B">운영팀 B</option>
+                  <option value="운영팀 C">운영팀 C</option>
+                </select>
+              </div>
+
             </div>
-            <div style={{ padding: "12px 16px", borderTop: S.border, display: "flex", gap: "8px" }}>
-              <button onClick={() => setShowAddModal(false)}
-                style={{ flex: 1, padding: "10px", fontSize: "13px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text2, cursor: "pointer" }}>취소</button>
-              <button onClick={async () => {
-                if (!addForm.name.trim()) return alert("매장명을 입력해주세요")
-                const res = await fetch("/api/admin/stores", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(addForm) })
-                if (!res.ok) return alert("저장 실패")
-                const updated = await fetch("/api/admin/stores").then(r => r.json())
-                setStores(Array.isArray(updated) ? updated : [])
-                setShowAddModal(false)
-                setAddForm({ name: "", category: "", address: "", contactName: "", contactPhone: "", naverUrl: "", storeType: "prospect", memo: "" })
-                showToast("매장이 추가됐어요!")
-              }}
-                style={{ flex: 2, padding: "10px", fontSize: "13px", fontWeight: 600, borderRadius: "8px", border: `0.5px solid ${S.accent}`, background: S.accentBg, color: S.accent, cursor: "pointer" }}>저장</button>
+
+            {/* 하단 버튼 */}
+            <div style={{ padding: "12px 16px", borderTop: S.border, display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ fontSize: "11px", color: S.text3 }} id="add-form-err"></div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button onClick={() => setShowAddModal(false)}
+                  style={{ padding: "9px 18px", fontSize: "13px", borderRadius: "8px", border: S.border2, background: S.surface2, color: S.text2, cursor: "pointer" }}>취소</button>
+                <button onClick={async () => {
+                  const errEl = document.getElementById("add-form-err")
+                  if (!addForm.name.trim()) { if (errEl) errEl.textContent = "⚠ 매장명을 입력해주세요"; return }
+                  if (!addForm.category) { if (errEl) errEl.textContent = "⚠ 카테고리를 선택해주세요"; return }
+                  if (!addForm.address.trim()) { if (errEl) errEl.textContent = "⚠ 주소를 입력해주세요"; return }
+                  if (errEl) errEl.textContent = ""
+                  const area = addForm.address.match(/([가-힣]+구|[가-힣]+시 [가-힣]+구)/)?.[1] ?? addForm.address.split(" ")[1] ?? ""
+                  const payload = {
+                    ...addForm,
+                    area,
+                    contractStart: addForm.storeType === "burning" ? addForm.contractStart : undefined,
+                    contractWeeks: addForm.storeType === "burning" ? Number(addForm.contractWeeks || 4) : undefined,
+                    monthlyFee: addForm.storeType === "burning" ? Number(addForm.contractFee || 10) * 10000 : undefined,
+                    pb: Number(addForm.pb || 10),
+                  }
+                  const res = await fetch("/api/admin/stores", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+                  if (!res.ok) return showToast("저장 실패", false)
+                  const updated = await fetch("/api/admin/stores").then(r => r.json())
+                  setStores(Array.isArray(updated) ? updated : [])
+                  setShowAddModal(false)
+                  setAddForm({ name: "", category: "", address: "", contactName: "", contactPhone: "", naverUrl: "", storeType: "prospect", memo: "" })
+                  showToast("매장이 추가됐어요!")
+                }}
+                  style={{ padding: "9px 22px", fontSize: "13px", fontWeight: 600, borderRadius: "8px", border: `0.5px solid ${S.accent}`, background: S.accentBg, color: S.accent, cursor: "pointer" }}>저장하기</button>
+              </div>
             </div>
           </div>
         </div>
