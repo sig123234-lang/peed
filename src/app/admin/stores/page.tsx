@@ -738,7 +738,7 @@ export default function AdminStoresPage() {
                     pb: Number(addForm.pb || 10),
                   }
                   const res = await fetch("/api/admin/stores", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-                  if (!res.ok) return showToast("저장 실패", false)
+                  if (!res.ok) return showToast("저장 실패")
                   const updated = await fetch("/api/admin/stores").then(r => r.json())
                   setStores(Array.isArray(updated) ? updated : [])
                   setShowAddModal(false)
