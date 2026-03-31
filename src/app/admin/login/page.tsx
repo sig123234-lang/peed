@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ id, password }),
       })
       if (res.ok) {
-        router.push("/admin")
+        window.location.href = '/admin'
       } else {
         const data = await res.json()
         setError(data.error || "로그인 실패")
