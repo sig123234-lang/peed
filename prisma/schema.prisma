@@ -11,7 +11,7 @@ model User {
   id            String        @id @default(cuid())
   name          String?
   email         String?       @unique
-  emailVerified DateTime? 
+  emailVerified DateTime?
   image         String?
   referralCode  String        @unique @default(cuid())
   pb            Int           @default(0)
@@ -45,33 +45,32 @@ model Account {
 }
 
 model Store {
-  id            Int       @id @default(autoincrement())
-  name          String
-  category      String
-  area          String
-  address       String
-  hours         String
-  emoji         String
-  bg            String    @default("#FEF3C7")
-  ac            String    @default("#D97706")
-  tag           String
-  naverUrl      String?
-  desc          String?
-  pb            Int       @default(10)
-  lat           Float
-  lng           Float
-  certified     Boolean   @default(false)
-  active        Boolean   @default(true)
-  contractStart DateTime
-  contractWeeks Int       @default(3)
-  monthlyFee    Int       @default(100000)
-  storeType     String    @default("burning")
+  id             Int       @id @default(autoincrement())
+  name           String
+  category       String
+  area           String
+  address        String
+  hours          String
+  emoji          String
+  bg             String    @default("#FEF3C7")
+  ac             String    @default("#D97706")
+  tag            String
+  desc           String?
+  pb             Int       @default(10)
+  lat            Float
+  lng            Float
+  certified      Boolean   @default(false)
+  active         Boolean   @default(true)
+  contractStart  DateTime
+  contractWeeks  Int       @default(3)
+  monthlyFee     Int       @default(100000)
+  storeType      String    @default("burning")
   prospectStatus String?
-  contactName   String?
-  contactPhone  String?
-  naverUrl      String?
-  createdAt     DateTime  @default(now())
-  reviews       Review[]
+  contactName    String?
+  contactPhone   String?
+  naverUrl       String?
+  createdAt      DateTime  @default(now())
+  reviews        Review[]
 }
 
 model Review {
