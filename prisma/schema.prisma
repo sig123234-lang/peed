@@ -67,6 +67,10 @@ model Store {
   monthlyFee    Int       @default(100000)
   storeType     String    @default("burning")
   prospectStatus String?
+  contactName   String?
+  contactPhone  String?
+  naverUrl      String?
+  naverUrl      String?
   createdAt     DateTime  @default(now())
   reviews       Review[]
 }
