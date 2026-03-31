@@ -70,7 +70,6 @@ model Store {
   contactName   String?
   contactPhone  String?
   naverUrl      String?
-  naverUrl      String?
   createdAt     DateTime  @default(now())
   reviews       Review[]
 }
