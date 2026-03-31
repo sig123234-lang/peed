@@ -3,10 +3,10 @@ import { useEffect, useState, useRef } from "react"
 
 // ── 디자인 토큰 ───────────────────────────────────
 const S = {
-  bg: "#0A0A0F", surface: "#111118", surface2: "#16161F", surface3: "#1C1C28",
-  border: "0.5px solid rgba(255,255,255,0.06)",
-  border2: "0.5px solid rgba(255,255,255,0.1)",
-  text: "#F0EFF8", text2: "#9896B0", text3: "#5C5A72",
+  bg: "#F5F7FF", surface: "#FFFFFF", surface2: "#F8F9FF", surface3: "#EEF2FF",
+  border: "1px solid #E5E9FF",
+  border2: "1px solid #D4DCFF",
+  text: "#1A1F36", text2: "#6B7280", text3: "#9CA3AF",
   accent: "#7C6EF5", accentBg: "rgba(124,110,245,0.12)",
   green: "#23D18B", greenBg: "rgba(35,209,139,0.12)",
   red: "#F4645F", redBg: "rgba(244,100,95,0.12)",
